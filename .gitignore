@@ -433,6 +433,7 @@ fabric.properties
 # My temporary codes
 00.temp/*
 03.outputs/*
+02.inputs/*
 prograss_report.py
 
 
