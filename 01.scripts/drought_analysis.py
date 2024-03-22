@@ -66,16 +66,14 @@ elif platform.system() == 'Darwin':
 
 
 #%%
-path = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/Drought-Analysis-US'
-        '/02.outputs/')
-path_01 = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/Drought-Analysis-US'
-        '/02.outputs/drought_data')
+path = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/')
+path_01 = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/drought_data/')
 #stream_data
 
 end_year = 2020
 data_length = 41
 start_year = end_year - data_length + 1
-
+duration_list = [i for i in range(2, 11)]
 # %%
 empirical_distribution_data = {}
 drought_severity_data_all = {}
@@ -86,7 +84,7 @@ for dsource in ['USGS', 'NWM']:
     distribution_data = {}  # Analytic cdf data for each state, station, and duration.
     severity_data = {}  # Severity of each state, duration, station, and return period.
     final_output = {}
-    start_char = 126
+    start_char = 132
 
 
     # set the directory name
@@ -95,14 +93,13 @@ for dsource in ['USGS', 'NWM']:
 
     # Read each file and get data and generate the sdf curve
     for file_name in csv_files:
-
         raw_df = pd.read_csv(file_name, encoding='unicode_escape')
         raw_df['Datetime'] = pd.to_datetime(raw_df['Datetime'])
         raw_df = raw_df[raw_df[f'{dsource}_flow'] >= 0]
-        raw_df = raw_df[raw_df.Datetime.dt.year >= start_year]
+        raw_df = raw_df[(raw_df.Datetime >= f'{start_year}-10-01') & (raw_df.Datetime < f'{end_year}-10-01')]
         if dsource == 'NWM':
             raw_df.rename(columns={'NWM_flow': 'USGS_flow'}, inplace=True)
-            start_char = 125
+            start_char = 131
         temp_df_01 = Pyndat.sdf_creator(data=raw_df, figure=False)
         all_sdf, drought_severity_data = temp_df_01[0], temp_df_01[3]
         empirical_distribution_data[dsource][file_name[start_char:-4]] = all_sdf
@@ -111,31 +108,36 @@ for dsource in ['USGS', 'NWM']:
     for key, values in empirical_distribution_data[dsource].items():
         writer = pd.ExcelWriter(f'{path_01}/{dsource}/{key}.xlsx', engine='xlsxwriter')
         df_temp_01 = empirical_distribution_data[dsource][key]
-        for duration in range(2, 11):
-            df_temp_02 = df_temp_01[f'Duration={duration}'].dropna()
-            df_temp_02.to_excel(writer, sheet_name=str(duration))
+        for duration_num in duration_list:
+            df_temp_02 = df_temp_01[f'Duration={duration_num}'].dropna()
+            df_temp_02.to_excel(writer, sheet_name=str(duration_num))
 
         writer.close()
 
 
 #%%
 
+import numpy as np
+from scipy.stats import spearmanr
+
+
+
 station_list = pd.read_excel(f'{path}/final_modified.xlsx')
-station_list = station_list.iloc[: , 1:3].values
+station_list = station_list.iloc[:, 1:3].values
 
 # def analysis_correlation(all_sdf, empirical_distribution_data):
 
-temp_result = np.zeros((len(drought_severity_data_all[dsource]['USGS']), 9))
+temp_result = np.zeros((len(drought_severity_data_all[dsource]), 9))
 
 for station_index in range(len(station_list)):
-    usgs_station = station_list.iloc[station_index, 0]
-    nwm_station = station_list.iloc[station_index, 1]
-    usgs_data =
+    for duration_number in duration_list:
+        station_usgs = station_list[station_index, 0]
+        station_nwm = station_list[station_index, 1]
+        data_usgs = (drought_severity_data_all['USGS'][str(station_usgs)][f'Duration={duration_number}']).dropna()
+        data_nwm = (drought_severity_data_all['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna()
 
-
-
-
-
+        temp_data_merged = pd.merge(data_usgs, data_nwm, on='Date')
+        correlation, p_value = spearmanr(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
 
 
 
