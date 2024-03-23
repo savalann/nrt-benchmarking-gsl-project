@@ -1,0 +1,20 @@
+,NWISid,NHDPlusid,D2_USGS,D2_NWM,D3_USGS,D3_NWM,D4_USGS,D4_NWM,D5_USGS,D5_NWM,D6_USGS,D6_NWM,D7_USGS,D7_NWM,D8_USGS,D8_NWM,D9_USGS,D9_NWM,D10_USGS,D10_NWM
+0,10109000,664424,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend
+1,10113500,666156,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend
+2,10068500,4472049,no trend,no trend,no trend,no trend,decreasing,increasing,no trend,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing
+3,10092700,4560060,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing
+4,10126000,4605050,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing
+5,10011500,7887898,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing
+6,10039500,7898927,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,decreasing,increasing
+7,10130500,10092262,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing,decreasing,increasing
+8,10131000,10093066,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,decreasing,no trend
+9,10128500,10093110,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing
+10,10141000,10273232,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,decreasing,increasing
+11,10137500,10274270,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,decreasing,no trend
+12,10136500,10274616,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,increasing,decreasing,increasing
+13,10134500,10277268,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing
+14,10146400,10331001,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend
+15,10150500,10349360,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,increasing,decreasing,no trend
+16,10155000,10373622,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing
+17,10154200,10373692,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,no trend,increasing,no trend,increasing,no trend,increasing,no trend,increasing
+18,10171000,10390290,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend,decreasing,no trend
