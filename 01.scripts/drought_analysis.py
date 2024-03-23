@@ -119,7 +119,7 @@ for dsource in ['USGS', 'NWM']:
 
 import numpy as np
 from scipy.stats import spearmanr
-
+from scipy.stats import kendalltau
 
 
 station_list = pd.read_excel(f'{path}/final_modified.xlsx')
@@ -127,28 +127,56 @@ station_list = station_list.iloc[:, 1:3].values
 
 # def analysis_correlation(all_sdf, empirical_distribution_data):
 
+
 temp_result = np.zeros((len(drought_severity_data_all[dsource]), 9))
+p_correlation = np.zeros((len(drought_severity_data_all[dsource]), 9))
+p_trend = np.zeros((len(drought_severity_data_all[dsource]), 9))
+score_correlation = np.zeros((len(drought_severity_data_all[dsource]), 9))
+score_trend = np.zeros((len(drought_severity_data_all[dsource]), 9))
+
+drought_number = []
+drought_descriptive = []
 
 for station_index in range(len(station_list)):
+    temp_drought_number = []
+    temp_drought_descriptive = []
     for duration_number in duration_list:
+
         station_usgs = station_list[station_index, 0]
         station_nwm = station_list[station_index, 1]
         data_usgs = (drought_severity_data_all['USGS'][str(station_usgs)][f'Duration={duration_number}']).dropna()
         data_nwm = (drought_severity_data_all['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna()
 
         temp_data_merged = pd.merge(data_usgs, data_nwm, on='Date')
-        correlation, p_value = spearmanr(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
+        score_correlation[station_index, duration_number-2], p_correlation[station_index, duration_number-2] =\
+            spearmanr(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
+
+        score_trend[station_index, duration_number-2], p_trend[station_index, duration_number-2] =\
+            kendalltau(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
+
+        temp_drought_number.append((temp_data_merged['Severity(%)_x'] < 0).sum())
+        temp_drought_number.append((temp_data_merged['Severity(%)_y'] < 0).sum())
+
+        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].max())
+        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].median())
+        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].min())
+
+        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).max())
+        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).min())
+        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).median())
+
+    drought_number.extend([temp_drought_number])
+    drought_descriptive.extend([temp_drought_descriptive])
 
 
 
 
+    # for col_ind in range(0, 27, 3):
 
 
 
 
-
-
-
+aa = np.array(drought_descriptive)
 
 
 
