@@ -18,25 +18,22 @@ This software is licensed under the Apache License 2.0. See the LICENSE file for
 
 # basic packages
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-
-# geo packages
-# from shapely.geometry import Point
-# from pyproj import CRS
-# import geopandas as gpd
+from scipy.stats import spearmanr, kendalltau
+import pymannkendall as mk
+import matplotlib.pyplot as plt
+import math
 
 # system packages
 import glob
 import os
 import platform
 import warnings
+
 warnings.filterwarnings("ignore")
-import scipy.stats as stats
 
 # my packages
 from pyndat import Pyndat
-
 
 # %% platform detection and address assignment
 
@@ -48,7 +45,6 @@ if platform.system() == 'Windows':
                          '/02.nidis/02.code/03.resutls/')
     onedrive_path_new_data = 'E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/02.data/'
 
-
     box_path = 'C:/Users/snaserneisary/Box/Evaluation/Data_1980-2020/NWIS_sites/'
 
 elif platform.system() == 'Darwin':
@@ -59,16 +55,12 @@ elif platform.system() == 'Darwin':
                          '/02.nidis/02.code/03.resutls/')
     onedrive_path_new_data = '/Users/savalan/Library/CloudStorage/OneDrive-TheUniversityofAlabama/02.projects/02.nidis/02.code/02.data/'
 
-
-
-
-
-
-
-#%%
-path = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/')
-path_01 = ('E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/drought_data/')
-#stream_data
+# %%
+path = (
+    'E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/')
+path_01 = (
+    'E:/OneDrive/OneDrive - The University of Alabama/02.projects/02.nidis/02.code/nrt-nwm-benchmark-project/03.outputs/drought_data/')
+# stream_data
 
 end_year = 2020
 data_length = 41
@@ -85,7 +77,6 @@ for dsource in ['USGS', 'NWM']:
     severity_data = {}  # Severity of each state, duration, station, and return period.
     final_output = {}
     start_char = 132
-
 
     # set the directory name
     parent_dir = f'{path}stream_data/{dsource}/'
@@ -114,79 +105,216 @@ for dsource in ['USGS', 'NWM']:
 
         writer.close()
 
-
-#%%
-
-import numpy as np
-from scipy.stats import spearmanr
-from scipy.stats import kendalltau
+# %%
 
 
-station_list = pd.read_excel(f'{path}/final_modified.xlsx')
-station_list = station_list.iloc[:, 1:3].values
+station_list_raw = pd.read_excel(f'{path}/final_modified.xlsx')
+station_list = station_list_raw.iloc[:, 1:3].values
 
 # def analysis_correlation(all_sdf, empirical_distribution_data):
 
 
 temp_result = np.zeros((len(drought_severity_data_all[dsource]), 9))
 p_correlation = np.zeros((len(drought_severity_data_all[dsource]), 9))
-p_trend = np.zeros((len(drought_severity_data_all[dsource]), 9))
 score_correlation = np.zeros((len(drought_severity_data_all[dsource]), 9))
-score_trend = np.zeros((len(drought_severity_data_all[dsource]), 9))
-
+p_trend = []
+slope_trend = []
 drought_number = []
 drought_descriptive = []
 
 for station_index in range(len(station_list)):
+    temp_p_trend = []
+    temp_slope_trend = []
     temp_drought_number = []
     temp_drought_descriptive = []
     for duration_number in duration_list:
-
         station_usgs = station_list[station_index, 0]
         station_nwm = station_list[station_index, 1]
         data_usgs = (drought_severity_data_all['USGS'][str(station_usgs)][f'Duration={duration_number}']).dropna()
         data_nwm = (drought_severity_data_all['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna()
 
         temp_data_merged = pd.merge(data_usgs, data_nwm, on='Date')
-        score_correlation[station_index, duration_number-2], p_correlation[station_index, duration_number-2] =\
+        score_correlation[station_index, duration_number - 2], p_correlation[station_index, duration_number - 2] = \
             spearmanr(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
 
-        score_trend[station_index, duration_number-2], p_trend[station_index, duration_number-2] =\
-            kendalltau(temp_data_merged['Severity(%)_x'], temp_data_merged['Severity(%)_y'])
+        temp_p_trend.append(mk.original_test(temp_data_merged['Severity(%)_x'])[0])
+        temp_p_trend.append(mk.original_test(temp_data_merged['Severity(%)_y'])[0])
+
+        temp_slope_trend.append(round(mk.original_test(temp_data_merged['Severity(%)_x'])[7], 2))
+        temp_slope_trend.append(round(mk.original_test(temp_data_merged['Severity(%)_y'])[7], 2))
 
         temp_drought_number.append((temp_data_merged['Severity(%)_x'] < 0).sum())
         temp_drought_number.append((temp_data_merged['Severity(%)_y'] < 0).sum())
 
-        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].max())
-        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].median())
-        temp_drought_descriptive.append(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]['Severity(%)_x'].min())
 
-        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).max())
-        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).min())
-        temp_drought_descriptive.append((temp_data_merged['Severity(%)_y'] < 0).median())
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]
+                                              ['Severity(%)_x'].max(), 2))
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]
+                                              ['Severity(%)_x'].median(), 2))
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_x'] < 0]
+                                              ['Severity(%)_x'].min(), 2))
 
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_y'] < 0]
+                                              ['Severity(%)_y'].max(), 2))
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_y'] < 0]
+                                              ['Severity(%)_y'].median(), 2))
+        temp_drought_descriptive.append(round(temp_data_merged[temp_data_merged['Severity(%)_y'] < 0]
+                                              ['Severity(%)_y'].min(), 2))
+
+
+    p_trend.extend([temp_p_trend])
+    slope_trend.extend([temp_slope_trend])
     drought_number.extend([temp_drought_number])
     drought_descriptive.extend([temp_drought_descriptive])
 
+index_1 = []
+index_2 = []
+index_3 = []
+index_4 = []
+for ii in range(2, 11):
+    index_4.append(f'D{ii}')
+    for name_col in ['USGS', 'NWM']:
+        index_1.append(f'D{ii}_{name_col}')
+        for name_metric in ['min', 'median', 'max']:
+            index_2.append(f'D{ii}_{name_metric}_{name_col}')
+
+drought_number = pd.DataFrame(drought_number, columns=index_1)
+final_drought_number = pd.concat([station_list_raw.iloc[:, 1:3], drought_number], axis=1)
+
+drought_descriptive = pd.DataFrame(drought_descriptive, columns=index_2) * -1
+final_drought_descriptive = pd.concat([station_list_raw.iloc[:, 1:3], drought_descriptive], axis=1)
+
+p_trend = pd.DataFrame(p_trend, columns=index_1)
+final_p_trend = pd.concat([station_list_raw.iloc[:, 1:3], p_trend], axis=1)
+
+slope_trend = pd.DataFrame(slope_trend, columns=index_1)
+final_slope_trend = pd.concat([station_list_raw.iloc[:, 1:3], slope_trend], axis=1)
 
 
+score_correlation = pd.DataFrame(np.round(score_correlation, 2), columns=index_4)
+final_score_correlation = pd.concat([station_list_raw.iloc[:, 1:3], score_correlation], axis=1)
 
-    # for col_ind in range(0, 27, 3):
+p_correlation = pd.DataFrame(np.round(p_correlation, 2), columns=index_4)
+p_correlation = p_correlation.applymap(lambda x: 'significant' if x <= 0.05 else ' not significant')
+final_p_correlation = pd.concat([station_list_raw.iloc[:, 1:3], p_correlation], axis=1)
+
+final_drought_number.to_csv(f'{path_01}number_of_drought_events.csv')
+final_drought_descriptive.to_csv(f'{path_01}descriptive_info.csv')
+final_p_trend.to_csv(f'{path_01}trend_p_value.csv')
+final_slope_trend.to_csv(f'{path_01}trend_slope.csv')
+final_score_correlation.to_csv(f'{path_01}correlation_score.csv')
+final_p_correlation.to_csv(f'{path_01}correlation_p_value.csv')
+
+#%%
+"""
+Savy: The function in this cell will create different plots, such as heatmaps for number of drought events, correlation,
+and trend, and    
+
+"""
+#
+# def create_box_plot(datasets, save_path, figsize=(12, 12)):
+#     n_subplots = len(datasets)
+#     n_cols = int(math.ceil(math.sqrt(n_subplots)))
+#     n_rows = int(math.ceil(n_subplots / n_cols))
+#     key_name = list(datasets.keys())
+#     # Using sharey=True and sharex=True
+#     fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize, sharey=True, sharex=True, dpi=300)
+#     axes = axes.flatten()  # Flatten the axes array for easy iteration
+#
+#     for i, ax in enumerate(axes):
+#         if i < n_subplots:
+#             # Plotting the data with labels for the legend
+#             ax.boxplot(datasets[key_name[i]], notch=False, patch_artist=True, labels=['USGS', 'NWM'])
+#             ax.set_title(f'{key_name[i]}')
+#             # Setting the x-axis label for the last row
+#             # if i // n_cols == n_rows - 1:
+#             #     ax.set_xlabel('Name of Dataset')
+#
+#             # Setting the y-axis label for the first column
+#             if i % n_cols == 0:
+#                 ax.set_ylabel('Severity(%)')
+#         else:
+#             # Hide unused subplots
+#             ax.axis('off')
+#
+#     plt.tight_layout()
+#     plt.savefig(f'{save_path}severity_boxplot.png')
+#     plt.show()
+#
+#
+# # Example usage
+#
+# temp_data_merged = {}
+#
+#
+# for duration_number in duration_list:
+#     for station_index in range(len(station_list)):
+#         station_usgs = station_list[station_index, 0]
+#         station_nwm = station_list[station_index, 1]
+#         data_usgs = ((empirical_distribution_data['USGS'][str(station_usgs)][f'Duration={duration_number}'])
+#                      .dropna() * -1)
+#         data_nwm = (empirical_distribution_data['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna() * -1
+#         temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = pd.merge(data_usgs, data_nwm, on='Date')
+#         temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'][['Severity(%)_x', 'Severity(%)_y']]
+#
+#     create_box_plot(temp_data_merged, f'{path_01}d{duration_number}_')
+#
 
 
+# def create_subplots(temp_data_merged, path_01):
 
 
-aa = np.array(drought_descriptive)
+#%%
 
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
+# Sample data for the heat maps as list of lists
+data_nse = final_drought_number.iloc[:, 2:]
+# models = ['BBN', 'ANN-GA', 'GP', 'RF', 'SVR-GA', 'LSTM']
 
+# Create DataFrames
+# df_nse = pd.DataFrame(data_nse, index=models, columns=['Test', 'Train'])
+# df_r2 = pd.DataFrame(data_r2, index=models, columns=['Test', 'Train'])
+# df_third = pd.DataFrame(data_third, index=models,
+#                         columns=['Test', 'Train'])  # Adjust this line based on your third data set
 
+# Set up the matplotlib figure
+fig, axes = plt.subplots(ncols=1, figsize=(15, 5))
 
+# Draw the heat maps
+sns.heatmap(data_nse, annot=True, fmt=".2f", cmap="Oranges", ax=axes, cbar=False)
+# sns.heatmap(df_r2, annot=True, fmt=".2f", cmap="Greens", ax=axes[1], cbar=False)
+#sns.heatmap(df_third, annot=True, fmt=".2f", cmap="Greens", ax=axes[2], cbar=False)  # Replace 'YourColorMap'
 
+# Set titles
+axes.set_title('NSE')
+# axes[1].set_title('R2')
+# axes[2].set_title('YourTitle')  # Replace with your actual title
 
+# Set x and y labels
+# for ax in axes:
+#     ax.set_xticklabels(['Test', 'Train'])
+#     ax.set_yticklabels(models, rotation=0)
+#
+# # Remove y ticks and set x ticks
+# for ax in axes:
+#     ax.set_yticks([])
+#     ax.set_xticks([0.5, 1.5])
 
+# Set the overall title
+plt.suptitle('Comparison of Model Performance')
 
+# Tight layout often produces a nice layout for subplots
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+# Save the figure if needed
+plt.savefig('heatmap_comparison.png')
+
+# Show the plot
+plt.show()
 
 
 
@@ -199,22 +327,18 @@ aa = np.array(drought_descriptive)
 
 
 #%%
+data = final_drought_number.iloc[:, 2:]
 
-#
-# for duration_number in [i for i in range(2, 11)]:
-#     temp_output['correlation'] = 0
-#     temp_output['trend'] = 0
-#     temp_output['event_number'] = 0
-#
-#     for station_index, station_number in enumerate(valid_station_numbers):
-#         df_temp_01 = empirical_distribution_data[station_number][f'Duration={duration_number}']
-#         df_temp_02 = df_temp_01.dropna()
-#
-#         temp_output.iloc[station_index, -3] =
-#
-#         temp_output.iloc[station_index, -2] =
-#
-#         temp_output.iloc[station_index, -1] = len(df_temp_02['Severity(%)'])
-#
-#     final_output[duration_number] = temp_output.copy()
-#
+result = []
+
+for row in data:
+    temp = []
+    for i in range(0, len(row), 2):
+        temp.append(row[i+1] - row[i])
+    result.append(temp)
+
+# Print the result
+for row in result:
+    print(row)
+
+
