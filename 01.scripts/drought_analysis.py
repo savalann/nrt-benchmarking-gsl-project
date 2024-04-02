@@ -22,6 +22,7 @@ import pandas as pd
 from scipy.stats import spearmanr, kendalltau
 import pymannkendall as mk
 import matplotlib.pyplot as plt
+import seaborn as sns
 import math
 
 # system packages
@@ -29,7 +30,6 @@ import glob
 import os
 import platform
 import warnings
-
 warnings.filterwarnings("ignore")
 
 # my packages
@@ -211,134 +211,84 @@ Savy: The function in this cell will create different plots, such as heatmaps fo
 and trend, and    
 
 """
-#
-# def create_box_plot(datasets, save_path, figsize=(12, 12)):
-#     n_subplots = len(datasets)
-#     n_cols = int(math.ceil(math.sqrt(n_subplots)))
-#     n_rows = int(math.ceil(n_subplots / n_cols))
-#     key_name = list(datasets.keys())
-#     # Using sharey=True and sharex=True
-#     fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize, sharey=True, sharex=True, dpi=300)
-#     axes = axes.flatten()  # Flatten the axes array for easy iteration
-#
-#     for i, ax in enumerate(axes):
-#         if i < n_subplots:
-#             # Plotting the data with labels for the legend
-#             ax.boxplot(datasets[key_name[i]], notch=False, patch_artist=True, labels=['USGS', 'NWM'])
-#             ax.set_title(f'{key_name[i]}')
-#             # Setting the x-axis label for the last row
-#             # if i // n_cols == n_rows - 1:
-#             #     ax.set_xlabel('Name of Dataset')
-#
-#             # Setting the y-axis label for the first column
-#             if i % n_cols == 0:
-#                 ax.set_ylabel('Severity(%)')
-#         else:
-#             # Hide unused subplots
-#             ax.axis('off')
-#
-#     plt.tight_layout()
-#     plt.savefig(f'{save_path}severity_boxplot.png')
-#     plt.show()
-#
-#
-# # Example usage
-#
-# temp_data_merged = {}
-#
-#
-# for duration_number in duration_list:
-#     for station_index in range(len(station_list)):
-#         station_usgs = station_list[station_index, 0]
-#         station_nwm = station_list[station_index, 1]
-#         data_usgs = ((empirical_distribution_data['USGS'][str(station_usgs)][f'Duration={duration_number}'])
-#                      .dropna() * -1)
-#         data_nwm = (empirical_distribution_data['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna() * -1
-#         temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = pd.merge(data_usgs, data_nwm, on='Date')
-#         temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'][['Severity(%)_x', 'Severity(%)_y']]
-#
-#     create_box_plot(temp_data_merged, f'{path_01}d{duration_number}_')
-#
+
+def create_box_plot(datasets, save_path, figsize=(12, 12)):
+    n_subplots = len(datasets)
+    n_cols = int(math.ceil(math.sqrt(n_subplots)))
+    n_rows = int(math.ceil(n_subplots / n_cols))
+    key_name = list(datasets.keys())
+    # Using sharey=True and sharex=True
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize, sharey=True, sharex=True, dpi=300)
+    axes = axes.flatten()  # Flatten the axes array for easy iteration
+
+    for i, ax in enumerate(axes):
+        if i < n_subplots:
+            # Plotting the data with labels for the legend
+            ax.boxplot(datasets[key_name[i]], notch=False, patch_artist=True, labels=['USGS', 'NWM'])
+            ax.set_title(f'{key_name[i]}')
+            # Setting the x-axis label for the last row
+            # if i // n_cols == n_rows - 1:
+            #     ax.set_xlabel('Name of Dataset')
+
+            # Setting the y-axis label for the first column
+            if i % n_cols == 0:
+                ax.set_ylabel('Severity(%)')
+        else:
+            # Hide unused subplots
+            ax.axis('off')
+
+    plt.tight_layout()
+    plt.savefig(f'{save_path}severity_boxplot.png')
+    plt.show()
 
 
-# def create_subplots(temp_data_merged, path_01):
+# Example usage
+
+temp_data_merged = {}
+
+
+for duration_number in duration_list:
+    for station_index in range(len(station_list)):
+        station_usgs = station_list[station_index, 0]
+        station_nwm = station_list[station_index, 1]
+        data_usgs = ((empirical_distribution_data['USGS'][str(station_usgs)][f'Duration={duration_number}'])
+                     .dropna() * -1)
+        data_nwm = (empirical_distribution_data['NWM'][str(station_nwm)][f'Duration={duration_number}']).dropna() * -1
+        temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = pd.merge(data_usgs, data_nwm, on='Date')
+        temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'] = temp_data_merged[f'U:{station_usgs}-N:{station_nwm}'][['Severity(%)_x', 'Severity(%)_y']]
+
+    create_box_plot(temp_data_merged, f'{path_01}d{duration_number}_')
+
 
 
 #%%
 
+column_names = ['USGS', 'NWM']
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 
-# Sample data for the heat maps as list of lists
-data_nse = final_drought_number.iloc[:, 2:]
-# models = ['BBN', 'ANN-GA', 'GP', 'RF', 'SVR-GA', 'LSTM']
 
-# Create DataFrames
-# df_nse = pd.DataFrame(data_nse, index=models, columns=['Test', 'Train'])
-# df_r2 = pd.DataFrame(data_r2, index=models, columns=['Test', 'Train'])
-# df_third = pd.DataFrame(data_third, index=models,
-#                         columns=['Test', 'Train'])  # Adjust this line based on your third data set
+fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10, 6), dpi=300)
 
-# Set up the matplotlib figure
-fig, axes = plt.subplots(ncols=1, figsize=(15, 5))
+sns.heatmap(final_drought_number[['D2_USGS', 'D2_NWM']], fmt=".0f", cmap="Oranges", annot=True, ax=axes[0], cbar=True,
+            xticklabels=column_names, yticklabels=final_drought_number['NWISid'], cbar_kws={"orientation": "horizontal", "pad": .05})
+axes[0].set_title('2-Years Duration')
+sns.heatmap(final_drought_number[['D10_USGS', 'D10_NWM']], fmt=".0f", cmap="Blues", annot=True, ax=axes[1], cbar=True,
+            xticklabels=column_names, yticklabels=final_drought_number['NHDPlusid'], cbar_kws={"orientation": "horizontal", "pad": .05})
 
-# Draw the heat maps
-sns.heatmap(data_nse, annot=True, fmt=".2f", cmap="Oranges", ax=axes, cbar=False)
-# sns.heatmap(df_r2, annot=True, fmt=".2f", cmap="Greens", ax=axes[1], cbar=False)
-#sns.heatmap(df_third, annot=True, fmt=".2f", cmap="Greens", ax=axes[2], cbar=False)  # Replace 'YourColorMap'
 
-# Set titles
-axes.set_title('NSE')
-# axes[1].set_title('R2')
-# axes[2].set_title('YourTitle')  # Replace with your actual title
+# Get the current axes object
+axes[1] = plt.gca()
 
-# Set x and y labels
-# for ax in axes:
-#     ax.set_xticklabels(['Test', 'Train'])
-#     ax.set_yticklabels(models, rotation=0)
-#
-# # Remove y ticks and set x ticks
-# for ax in axes:
-#     ax.set_yticks([])
-#     ax.set_xticks([0.5, 1.5])
+# Move the y-axis labels to the right
+axes[1].yaxis.tick_right()
+axes[1].yaxis.set_label_position("right")
+axes[1].set_yticklabels(axes[1].get_yticklabels(), rotation=0)
+axes[1].set_title('10-Years Duration')
 
-# Set the overall title
-plt.suptitle('Comparison of Model Performance')
-
-# Tight layout often produces a nice layout for subplots
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-
-# Save the figure if needed
-plt.savefig('heatmap_comparison.png')
-
+# Adjust layout
+plt.tight_layout()
+plt.savefig(f'{path_01}drought_number_heatmap.png')
 # Show the plot
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-#%%
-data = final_drought_number.iloc[:, 2:]
-
-result = []
-
-for row in data:
-    temp = []
-    for i in range(0, len(row), 2):
-        temp.append(row[i+1] - row[i])
-    result.append(temp)
-
-# Print the result
-for row in result:
-    print(row)
 
 
